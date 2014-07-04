@@ -173,7 +173,7 @@ var ArraySchema = module.exports = Schema.extensions.ArraySchema = Schema.extend
       try {
 		  this.itemSchema.validate(instance[i])
 	  } catch(e) {
-		  throw new Error('array contains invalid entry at ' + i + ' --> ' + e)
+		  throw new Error('array contains invalid entry at ' + i + ' --> ' + e.message)
 	  }
     }
 
@@ -224,7 +224,7 @@ var Schema = _dereq_('../BaseSchema')
 
 var BooleanSchema = module.exports = Schema.extensions.BooleanSchema =  new Schema.extend({
   validate : function(instance) {
-    if (!Object(instance) instanceof Boolean)
+    if (! (Object(instance) instanceof Boolean))
 		throw new Error('not a Boolean')
 
 	return true
@@ -302,7 +302,7 @@ var NumberSchema = module.exports = Schema.extensions.NumberSchema = Schema.exte
   publicFunctions : [ 'min', 'above', 'max', 'below', 'step' ],
 
   validate : function(instance) {
-    if (! Object(instance) instanceof Number)
+    if (! (Object(instance) instanceof Number))
 	  throw new Error('not a Number')
 	if (!(this.exclusiveMinimum ? instance >  this.minimum
                                   : instance >= this.minimum))
@@ -574,7 +574,7 @@ var Schema = _dereq_('../BaseSchema')
 var NothingSchema = module.exports = Schema.patterns.NothingSchema = Schema.extend({
   validate : function(instance) {
 	  if (instance != null)
-		  throw new Error('must be null')
+		  throw new Error('must be null or not present')
 	  return true
   },
 
@@ -623,15 +623,20 @@ var ObjectSchema = module.exports = Schema.patterns.ObjectSchema = Schema.extend
 
     // Simple string properties
     Object.keys(this.stringProps).every(function(key) {
-      if (self.stringProps[key].min === 0 && !(key in instance)) {
-		  return true;
+      if (!(key in instance)) {
+		if (self.stringProps[key].min === 0 ) {
+			  return true;
+		} else {
+			throw new Error('Key "' + key + '" must be present')
+		}
 	  }
 
 	  try {
 		  self.stringProps[key].value.validate(instance[key])
 	  } catch(e) {
-		  throw new Error('Parse error for key "' + key + '" --> ' + e);
+		  throw new Error('invalid key "' + key + '" --> ' + e.message);
 	  }
+	  return true
     })
 
     // If there are no RegExp and other validator, that's all
@@ -639,28 +644,28 @@ var ObjectSchema = module.exports = Schema.patterns.ObjectSchema = Schema.extend
 
     // Regexp and other properties
     var checked
-    for (var key in instance) {
+    for (var instancekey in instance) {
 
       // Checking the key against every key regexps
       checked = false
       Object.keys(this.regexpProps).every(function(key) {
-		  if (!self.regexpProps[key].key.test(key)) return true
+		  if (!self.regexpProps[key].key.test(instancekey)) return true
 		  checked = true
 		  try {
-			  self.regexpProps[key].value.validate(instance[key])
+			  self.regexpProps[key].value.validate(instance[instancekey])
 		  } catch(e) {
-			  throw new Error('lala');
-			//  throw new Error('Parse error for regexp in key "' + key + '" --> ' + e);
+			  throw new Error('no match regexp in key "' + instancekey + '" --> ' + e.message);
 		  }
+		  return true
       })
 
       // If the key is not matched by regexps and by simple string checks
       // then check it against this.other
-		if (!checked && !(key in this.stringProps)) {
+		if (!checked && !(instancekey in this.stringProps)) {
 			try {
-			 this.other.validate(instance[key])
+			 this.other.validate(instance[instancekey])
 		  } catch(e) {
-			  throw new Error('Parse error for key "' + key + '" --> ' + e);
+			  throw new Error('invalid key "' + instancekey + '" --> ' + e.message);
 		  }
 		}
     }
@@ -821,7 +826,7 @@ var OrSchema = module.exports = Schema.patterns.OrSchema = Schema.extend({
        try {
 		   sch.validate(instance)
 	   } catch (e) {
-		   error += e
+		   error += e.message
 		   return false
 	   }
 	   return true;
@@ -829,7 +834,7 @@ var OrSchema = module.exports = Schema.patterns.OrSchema = Schema.extend({
 		throw new Error('All following conditions are false: ' + error);
 	}
 
-	return true;;
+	return true;
   },
 
   toJSON : Schema.session(function() {
@@ -917,7 +922,7 @@ var RegexpSchema = module.exports = Schema.patterns.RegexpSchema = Schema.extend
   },
 
   validate : function(instance) {
-	  if (! Object(instance) instanceof String) {
+	  if (! (Object(instance) instanceof String)) {
 		  throw new Error('not a String')
 	  }
 	  if (this.regexp && !this.regexp.test(instance))
