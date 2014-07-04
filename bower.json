@@ -13,10 +13,10 @@
     "validator"
   ],
   "version": "0.7-beta.1",
-  "homepage": "https://github.com/piebev/js-schema",
+  "homepage": "https://github.com/piebe/js-schema",
   "repository": {
     "type": "git",
-    "url": "git@github.com:piebev/js-schema.git"
+    "url": "git@github.com:piebe/js-schema.git"
   },
   "dependencies": {
   }
