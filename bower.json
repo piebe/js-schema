@@ -12,11 +12,11 @@
     "validation",
     "validator"
   ],
-  "version": "0.6.3",
-  "homepage": "https://github.com/molnarg/js-schema",
+  "version": "0.7-beta.1",
+  "homepage": "https://github.com/piebev/js-schema",
   "repository": {
     "type": "git",
-    "url": "git@github.com:molnarg/js-schema.git"
+    "url": "git@github.com:piebev/js-schema.git"
   },
   "dependencies": {
   }
